@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "94135932224",
+    "project_id": "cipa-gifts-de355",
+    "storage_bucket": "cipa-gifts-de355.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:94135932224:android:f5aba5f9905b4e4e1916a5",
+        "android_client_info": {
+          "package_name": "com.xita.cipa_gifts"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "94135932224-seq97sb625vlb82j8vv5b8l55sr5152t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4KJfEA_XQUzJYDAKWmUrOjDrRZjboH5U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "94135932224-seq97sb625vlb82j8vv5b8l55sr5152t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
