@@ -39,6 +39,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   var transactionTypes = ["Sales", "Purchases", "All transactions"];
   List<String> productsDropDown = [];
+  var selectedProduct;
 
   _TransactionsPageState(this.transactionsToDisplay);
   @override
@@ -48,7 +49,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
         backgroundColor: HexColor("#086ad8"),
         title: Theme(
             data: Theme.of(context).copyWith(
-              canvasColor: Color.fromRGBO(38, 48, 75, 1),
+              canvasColor: HexColor("#086ad8"),
             ),
             child: new DropdownButton<String>(
               autofocus: false,
@@ -75,7 +76,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     ));
               }).toList(),
               onChanged: (String newitem) {
-                print(newitem);
                 for (var i = 0; i < transactionTypes.length; i++) {
                   if (transactionTypes[i] == newitem) {
                     setState(() {
@@ -114,23 +114,23 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   margin: EdgeInsets.only(left: 20, right: 20),
                   padding: EdgeInsets.only(left: 10),
                   decoration: BoxDecoration(
-                    
-                    color: Color.fromRGBO(244, 125, 54, 1),
+                    color: HexColor("#086ad8"),
                   ),
                   // width: ,
                   child: DropdownButton<String>(
+                    dropdownColor: HexColor("#086ad8"),
                     autofocus: false,
                     isExpanded: true,
                     icon: Icon(
                       Icons.arrow_downward,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                     underline: DropdownButtonHideUnderline(
                       child: new Container(),
                     ),
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Colors.white,
                         fontSize: 20),
                     hint: Text(
                       "Select a product",
@@ -153,9 +153,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     onChanged: (String newitem) {
                       for (var i = 0; i < productsDropDown.length; i++) {
                         if (newitem == productsDropDown[i]) {
-                          setState(() {
+                          if (productsDropDown[i] == "Show all products") {
                             productTodisplay = i;
-                          });
+                            selectedProduct = null;
+                          } else {
+                            productTodisplay = i;
+                            selectedProduct = productsDropDown[i];
+                          }
+
+                          setState(() {});
                         }
                       }
                       if (this.mounted) {
@@ -212,7 +218,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               '$startDate',
                               style: TextStyle(color: Colors.blue),
                             )),
-                             
                         TextButton(
                             onPressed: () {
                               DatePicker.showDatePicker(context,
@@ -237,7 +242,6 @@ class _TransactionsPageState extends State<TransactionsPage> {
                               '$endDate',
                               style: TextStyle(color: Colors.blue),
                             )),
-                         
                         RaisedButton(
                           onPressed: () {
                             startDate = "Select Start date";
@@ -264,83 +268,62 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       .orderBy('date', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
+                    productsDropDown = ["Show all products"];
+                    clearListsForPdf();
                     if (!snapshot.hasData) {
                       return Center(
                         child: CircularProgressIndicator(),
                       );
                     } else {
-                      productIdList = [];
-                      productNameList = [];
-                      costPriceList = [];
-                      sellingPriceList = [];
-                      quantityList = [];
-                      moneyReceivedList = [];
-                      moneySpentList = [];
-                      dateList = [];
-                      productsDropDown = ["Show all products"];
                       QuerySnapshot snap = snapshot.data;
                       List<Widget> containers = [];
-                      int totalIncome = 0;
                       for (var item in snap.docs) {
                         SalesModel salesModel = SalesModel.fromFireBase(item);
-                        totalIncome = totalIncome + salesModel.moneyReceived;
-
                         if (productsDropDown.contains(salesModel.productName)) {
                         } else {
                           productsDropDown
                               .add(salesModel.productName.toString());
-                          print(productsDropDown);
                         }
-
-                        // var productIdList = [];
-                        // var productNameList = [];
-                        // var costPriceList = [];
-                        // var sellingPriceList = [];
-                        // var quantityList = [];
-                        // var moneyReceivedList = [];
-                        // var moneySpentList = [];
-                        // var dateList = [];
-                        productIdList.add(salesModel.productId);
-                        productNameList.add(salesModel.productName);
-                        costPriceList.add(salesModel.costPrice);
-                        sellingPriceList.add(salesModel.sellingPrice);
-                        quantityList.add(salesModel.amount);
-                        moneyReceivedList.add(salesModel.moneyReceived);
-                        moneySpentList.add(0);
-                        dateList.add(salesModel.date.toDate());
                       }
-                      containers.add(Text(
-                        "Total Income - " +
-                            formatNumber(totalIncome.toString()),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ));
 
-                      for (var item in snap.docs) {
-                        SalesModel salesModel = SalesModel.fromFireBase(item);
+                      if (selectedProduct == null) {
+                        for (var item in snap.docs) {
+                          SalesModel salesModel = SalesModel.fromFireBase(item);
 
-                        DateTime saleDateTime = salesModel.date.toDate();
-                        try {
-                          if (saleDateTime.isBefore(finalEndDate) &&
-                              saleDateTime.isAfter(finalStartDate)) {
+                          DateTime saleDateTime = salesModel.date.toDate();
+                          try {
+                            if (saleDateTime.isBefore(finalEndDate) &&
+                                saleDateTime.isAfter(finalStartDate)) {
+                              containers.add(addSalesToWidgetList(salesModel));
+                              addToProductListsForPdf(salesModel, null, null);
+                            }
+                          } catch (e) {
                             containers.add(addSalesToWidgetList(salesModel));
+                            addToProductListsForPdf(salesModel, null, null);
                           }
-                        } catch (e) {
-                          containers.add(addSalesToWidgetList(salesModel));
                         }
-
-                        // if (finalStartDate != null &&
-                        //     finalStartDate != null &&
-                        //     containers.isEmpty) {
-                        //   return Text(
-                        //     "No results found matching search",
-                        //     style:
-                        //         TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        //   );
-                        // }
+                      } else {
+                        for (var item in snap.docs) {
+                          SalesModel salesModel = SalesModel.fromFireBase(item);
+                          if (salesModel.productName
+                              .toString()
+                              .toLowerCase()
+                              .contains(
+                                  selectedProduct.toString().toLowerCase())) {
+                            DateTime saleDateTime = salesModel.date.toDate();
+                            try {
+                              if (saleDateTime.isBefore(finalEndDate) &&
+                                  saleDateTime.isAfter(finalStartDate)) {
+                                containers
+                                    .add(addSalesToWidgetList(salesModel));
+                                addToProductListsForPdf(salesModel, null, null);
+                              }
+                            } catch (e) {
+                              containers.add(addSalesToWidgetList(salesModel));
+                              addToProductListsForPdf(salesModel, null, null);
+                            }
+                          }
+                        }
                       }
 
                       return Expanded(
@@ -359,14 +342,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     productsDropDown = ["Show all products"];
-                    productIdList = [];
-                    productNameList = [];
-                    costPriceList = [];
-                    sellingPriceList = [];
-                    quantityList = [];
-                    moneyReceivedList = [];
-                    moneySpentList = [];
-                    dateList = [];
+                    clearListsForPdf();
                     if (!snapshot.hasData) {
                       return Center(
                         child: CircularProgressIndicator(),
@@ -374,53 +350,63 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     } else {
                       QuerySnapshot snap = snapshot.data;
                       List<Widget> containers = [];
-                      int totalExpenditure = 0;
                       for (var item in snap.docs) {
                         PurchasesModel purchasesModel =
                             PurchasesModel.fromFireBase(item);
-                        totalExpenditure =
-                            totalExpenditure + purchasesModel.moneySpent;
-
                         if (productsDropDown
                             .contains(purchasesModel.productName)) {
                         } else {
                           productsDropDown
                               .add(purchasesModel.productName.toString());
-                          print(productsDropDown);
                         }
-
-                        productIdList.add(purchasesModel.productId);
-                        productNameList.add(purchasesModel.productName);
-                        costPriceList.add(purchasesModel.costPrice);
-                        sellingPriceList.add(0);
-                        quantityList.add(purchasesModel.amount);
-                        moneyReceivedList.add(0);
-                        moneySpentList.add(purchasesModel.moneySpent);
-                        dateList.add(purchasesModel.date.toDate());
                       }
-                      containers.add(Text(
-                        "Total Expenditure - " +
-                            formatNumber(totalExpenditure.toString()),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ));
-                      for (var item in snap.docs) {
-                        PurchasesModel purchasesModel =
-                            PurchasesModel.fromFireBase(item);
 
-                        DateTime saleDateTime = purchasesModel.date.toDate();
-                        try {
-                          if (saleDateTime.isBefore(finalEndDate) &&
-                              saleDateTime.isAfter(finalStartDate)) {
+                      if (selectedProduct == null) {
+                        for (var item in snap.docs) {
+                          PurchasesModel purchasesModel =
+                              PurchasesModel.fromFireBase(item);
+
+                          DateTime saleDateTime = purchasesModel.date.toDate();
+                          try {
+                            if (saleDateTime.isBefore(finalEndDate) &&
+                                saleDateTime.isAfter(finalStartDate)) {
+                              containers.add(
+                                  addPurchasesToWidgetList(purchasesModel));
+                              addToProductListsForPdf(
+                                  null, purchasesModel, null);
+                            }
+                          } catch (e) {
                             containers
                                 .add(addPurchasesToWidgetList(purchasesModel));
+                            addToProductListsForPdf(null, purchasesModel, null);
                           }
-                        } catch (e) {
-                          containers
-                              .add(addPurchasesToWidgetList(purchasesModel));
+                        }
+                      } else {
+                        for (var item in snap.docs) {
+                          PurchasesModel purchasesModel =
+                              PurchasesModel.fromFireBase(item);
+                          if (purchasesModel.productName
+                              .toString()
+                              .toLowerCase()
+                              .contains(
+                                  selectedProduct.toString().toLowerCase())) {
+                            DateTime purchaseDateTime =
+                                purchasesModel.date.toDate();
+                            try {
+                              if (purchaseDateTime.isBefore(finalEndDate) &&
+                                  purchaseDateTime.isAfter(finalStartDate)) {
+                                containers.add(
+                                    addPurchasesToWidgetList(purchasesModel));
+                                addToProductListsForPdf(
+                                    null, purchasesModel, null);
+                              }
+                            } catch (e) {
+                              containers.add(
+                                  addPurchasesToWidgetList(purchasesModel));
+                              addToProductListsForPdf(
+                                  null, purchasesModel, null);
+                            }
+                          }
                         }
                       }
 
@@ -440,14 +426,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     productsDropDown = ["Show all products"];
-                    productIdList = [];
-                    productNameList = [];
-                    costPriceList = [];
-                    sellingPriceList = [];
-                    quantityList = [];
-                    moneyReceivedList = [];
-                    moneySpentList = [];
-                    dateList = [];
+                    clearListsForPdf();
                     if (!snapshot.hasData) {
                       return Center(
                         child: CircularProgressIndicator(),
@@ -458,34 +437,62 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       for (var item in snap.docs) {
                         AllTransactionsModel allTransactionsModel =
                             AllTransactionsModel.fromFireBase(item);
-                        productIdList.add(allTransactionsModel.productId);
-                        productNameList.add(allTransactionsModel.productName);
-                        costPriceList.add(allTransactionsModel.costPrice);
-                        sellingPriceList.add(allTransactionsModel.sellingPrice);
-                        quantityList.add(allTransactionsModel.amount);
-                        moneyReceivedList
-                            .add(allTransactionsModel.moneyReceived);
-                        moneySpentList.add(allTransactionsModel.moneySpent);
-                        dateList.add(allTransactionsModel.date.toDate());
-
                         if (productsDropDown
                             .contains(allTransactionsModel.productName)) {
                         } else {
                           productsDropDown
                               .add(allTransactionsModel.productName.toString());
-                          print(productsDropDown);
                         }
-                        DateTime saleDateTime =
-                            allTransactionsModel.date.toDate();
-                        try {
-                          if (saleDateTime.isBefore(finalEndDate) &&
-                              saleDateTime.isAfter(finalStartDate)) {
+                      }
+
+                      if (selectedProduct == null) {
+                        for (var item in snap.docs) {
+                          AllTransactionsModel allTransactionsModel =
+                              AllTransactionsModel.fromFireBase(item);
+
+                          DateTime saleDateTime =
+                              allTransactionsModel.date.toDate();
+                          try {
+                            if (saleDateTime.isBefore(finalEndDate) &&
+                                saleDateTime.isAfter(finalStartDate)) {
+                              containers.add(addAllTransactionsToWidget(
+                                  allTransactionsModel));
+                              addToProductListsForPdf(
+                                  null, null, allTransactionsModel);
+                            }
+                          } catch (e) {
                             containers.add(addAllTransactionsToWidget(
                                 allTransactionsModel));
+                            addToProductListsForPdf(
+                                null, null, allTransactionsModel);
                           }
-                        } catch (e) {
-                          containers.add(
-                              addAllTransactionsToWidget(allTransactionsModel));
+                        }
+                      } else {
+                        for (var item in snap.docs) {
+                          AllTransactionsModel allTransactionsModel =
+                              AllTransactionsModel.fromFireBase(item);
+                          if (allTransactionsModel.productName
+                              .toString()
+                              .toLowerCase()
+                              .contains(
+                                  selectedProduct.toString().toLowerCase())) {
+                            DateTime saleDateTime =
+                                allTransactionsModel.date.toDate();
+                            try {
+                              if (saleDateTime.isBefore(finalEndDate) &&
+                                  saleDateTime.isAfter(finalStartDate)) {
+                                containers.add(addAllTransactionsToWidget(
+                                    allTransactionsModel));
+                                addToProductListsForPdf(
+                                    null, null, allTransactionsModel);
+                              }
+                            } catch (e) {
+                              containers.add(addAllTransactionsToWidget(
+                                  allTransactionsModel));
+                              addToProductListsForPdf(
+                                  null, null, allTransactionsModel);
+                            }
+                          }
                         }
                       }
 
@@ -510,6 +517,51 @@ class _TransactionsPageState extends State<TransactionsPage> {
         },
       ),
     );
+  }
+
+  clearListsForPdf() {
+    productIdList = [];
+    productNameList = [];
+    costPriceList = [];
+    sellingPriceList = [];
+    quantityList = [];
+    moneyReceivedList = [];
+    moneySpentList = [];
+    dateList = [];
+  }
+
+  addToProductListsForPdf(
+      [SalesModel salesModel,
+      PurchasesModel purchasesModel,
+      AllTransactionsModel allTransactionsModel]) {
+    if (salesModel == null && purchasesModel == null) {
+      productIdList.add(allTransactionsModel.productId);
+      productNameList.add(allTransactionsModel.productName);
+      costPriceList.add(allTransactionsModel.costPrice);
+      sellingPriceList.add(allTransactionsModel.sellingPrice);
+      quantityList.add(allTransactionsModel.amount);
+      moneyReceivedList.add(allTransactionsModel.moneyReceived);
+      moneySpentList.add(allTransactionsModel.moneySpent);
+      dateList.add(allTransactionsModel.date.toDate());
+    } else if (salesModel == null && allTransactionsModel == null) {
+      productIdList.add(purchasesModel.productId);
+      productNameList.add(purchasesModel.productName);
+      costPriceList.add(purchasesModel.costPrice);
+      sellingPriceList.add(0);
+      quantityList.add(purchasesModel.amount);
+      moneyReceivedList.add(0);
+      moneySpentList.add(purchasesModel.moneySpent);
+      dateList.add(purchasesModel.date.toDate());
+    } else {
+      productIdList.add(salesModel.productId);
+      productNameList.add(salesModel.productName);
+      costPriceList.add(salesModel.costPrice);
+      sellingPriceList.add(salesModel.sellingPrice);
+      quantityList.add(salesModel.amount);
+      moneyReceivedList.add(salesModel.moneyReceived);
+      moneySpentList.add(0);
+      dateList.add(salesModel.date.toDate());
+    }
   }
 
   addSalesToWidgetList(SalesModel salesModel) {

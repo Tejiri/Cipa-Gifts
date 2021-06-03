@@ -24,9 +24,10 @@ class _LoginPageState extends State<LoginPage> {
           key: _formKey,
           child: Container(
             child: ListView(
+              shrinkWrap: true,
               //mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(padding: EdgeInsets.only(top: 150)),
+                //Padding(padding: EdgeInsets.only(top: 150)),
                 Text(
                   "Cipa Gifts Stocks",
                   textAlign: TextAlign.center,
@@ -73,7 +74,9 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                       controller: password,
+                      obscureText: true,
                       decoration: InputDecoration(
+                        
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           enabledBorder: InputBorder.none,
