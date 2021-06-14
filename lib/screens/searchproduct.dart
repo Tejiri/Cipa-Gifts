@@ -199,11 +199,11 @@ class _SearchProductPageState extends State<SearchProductPage> {
                               //print(item.id);
                             }
                           } else {
-                            productWidgets.add(Text(
-                              "No low stock products found",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ));
+                            // productWidgets.add(Text(
+                            //   "No low stock products found",
+                            //   style: TextStyle(
+                            //       fontWeight: FontWeight.bold, fontSize: 20),
+                            // ));
                           }
                         } else {
                           if (productName

@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 //Padding(padding: EdgeInsets.only(top: 150)),
                 Text(
-                  "Cipa Gifts Stocks",
+                  "Cipa Gift Stocks",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: HexColor("#086ad8"),
